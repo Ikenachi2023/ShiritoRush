@@ -4,7 +4,7 @@
  * 
  * 1. HTTPヘッダー・入力サニタイズ
  * 2. ひらがな正規化・バリデーション
- * 3. 第1層: NEologd 202万語ローカル辞書照合 (0ms)
+ * 3. 第1層: NEologd 202万語ローカル辞書照合 (高速通信不要)
  * 4. 第2層: ディスクキャッシュ層照合
  * 5. 第3層: Google IME CGI API 単文節一括変換 (#1候補抽出)
  * 6. 第4層: Wikipedia Action API 記事存在確認 (prop=extracts)
@@ -41,7 +41,7 @@ if (!preg_match('/^[ぁ-んー]+$/u', $word)) {
 
 
 /* =========================================================================
- * SECTION 3: LAYER 1 - 2.02M NEOLOGD MASTER DICTIONARY (202万語ローカル辞書 0ms)
+ * SECTION 3: LAYER 1 - 2.02M NEOLOGD MASTER DICTIONARY (202万語ローカル辞書照合)
  * ========================================================================= */
 $dictFile = __DIR__ . '/../data/neologd_dictionary.json';
 if (file_exists($dictFile)) {
