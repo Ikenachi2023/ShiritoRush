@@ -1,0 +1,11 @@
+deploy/
+dist/
+.gemini/
+scratch/
+*.zip
+.htaccess
+*.htaccess
+data/rooms/*.json
+data/cache/*.json
+!data/rooms/.gitkeep
+!data/cache/.gitkeep

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>ShiritoRush | リアルタイムしりとりバトル v3.0.0</title>
+  <meta name="description" content="ハイスピードで爽快なオンライン対応しりとりバトルアプリ ShiritoRush">
+  <link rel="stylesheet" href="assets/css/style.css?v=3.0.0">
+</head>
+<body>
+  <!-- 画面右上固定ナビゲーション（洗練されたダークガラス・ピルボタン） -->
+  <nav class="top-nav-bar" id="fixed-top-nav">
+    <button class="btn-top-pill" id="btn-nav-settings">
+      <span class="pill-icon">⚙️</span>
+      <span class="pill-label">設定</span>
+    </button>
+    <button class="btn-top-pill btn-top-exit hidden" id="btn-nav-exit">
+      <span class="pill-icon">🚪</span>
+      <span class="pill-label">退出</span>
+    </button>
+  </nav>
+
+  <div class="app-container">
+
+    <!-- ========================================== -->
+    <!-- 1. タイトル画面 (Title Screen)              -->
+    <!-- ========================================== -->
+    <div class="screen title-screen" id="title-screen">
+      <h1 class="title-logo">ShiritoRush</h1>
+      <p class="title-tagline">ハイスピード・ネオしりとりバトル</p>
+
+      <div class="title-actions">
+        <button class="btn-title-primary" id="btn-start-game">
+          シングル対戦 ⚡
+        </button>
+        <button class="btn-title-secondary" id="btn-online-lobby" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
+          オンライン対戦 🌐
+        </button>
+        <button class="btn-title-secondary" id="btn-title-rules">
+          ルール説明 📖
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. メイン対戦画面 (Game Screen)             -->
+    <!-- ========================================== -->
+    <div class="screen game-container hidden" id="game-screen">
+      <!-- 画面中央上部：将棋対局時計 ＆ ターン表示 -->
+      <header class="turn-header">
+        <div class="shogi-clock-bar">
+          <div class="clock-box user-clock active" id="user-clock-box">
+            <span class="clock-label" id="user-clock-label">あなた</span>
+            <span class="clock-time" id="user-clock-time">03:00</span>
+          </div>
+
+          <div class="turn-indicator" id="turn-indicator">
+            <span class="turn-pulse"></span>
+            <span id="turn-text">あなたのターン</span>
+          </div>
+
+          <div class="clock-box opp-clock" id="opp-clock-box">
+            <span class="clock-label" id="opp-clock-label">相手</span>
+            <span class="clock-time" id="opp-clock-time">03:00</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- メイン対戦アリーナ -->
+      <main class="arena-card" style="position: relative;">
+        <!-- 右上角の戦術攻撃バッジポップアップ領域 -->
+        <div id="tactical-toast-corner" class="tactical-toast-corner hidden"></div>
+
+        <!-- 直前の単語表示エリア -->
+        <div class="word-display-area" style="position: relative;">
+          <!-- 上部に浮遊するスコア・Good Length! ポップアップ -->
+          <div id="floating-toast-container" class="floating-toast-container"></div>
+          <div class="word-label">直前の単語</div>
+          <div class="current-word" id="current-word-display">
+            しりと<span class="target-char">り</span>
+          </div>
+        </div>
+
+        <!-- 単語入力フォーム (唯一のコンボ表示を入力欄上部に配置) -->
+        <form class="input-section" id="word-form" onsubmit="return false;">
+          <!-- ドーパミン感あふれるコンボ表示（0コンボ時は非表示） -->
+          <div class="combo-badge-wrapper">
+            <div class="combo-badge-dopamine hidden" id="combo-badge">
+              <span class="combo-count" id="combo-count">0</span>
+              <span class="combo-label">COMBO! 🔥</span>
+            </div>
+          </div>
+
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="word-input" 
+              class="word-input" 
+              placeholder="「り」から始まるひらがなを入力..." 
+              autocomplete="off"
+              maxlength="30"
+            >
+            <button type="submit" class="btn-submit" id="btn-submit">
+              送信 ⚡
+            </button>
+          </div>
+          <div class="message-banner" id="message-banner"></div>
+        </form>
+      </main>
+
+      <!-- 直近3つの単語表示パネル (固定3枠) -->
+      <section class="recent-panel">
+        <div class="recent-header">
+          <span class="total-words-badge" id="history-total-count">total 1words</span>
+        </div>
+        <div class="recent-words-list" id="recent-words-list">
+          <div class="recent-slot latest" id="slot-0">
+            <span class="slot-word">しりとり</span>
+            <span class="slot-len">4文字</span>
+          </div>
+          <div class="recent-slot" id="slot-1">
+            <span class="slot-empty">---</span>
+          </div>
+          <div class="recent-slot" id="slot-2">
+            <span class="slot-empty">---</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 3. 設定モーダル                           -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="settings-card">
+      <div class="settings-header">
+        <h2 class="settings-title">⚙️ 設定</h2>
+        <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 800;">v3.0.0</span>
+      </div>
+
+      <div class="settings-group">
+        <button class="btn-rule-view" id="btn-modal-rules" style="width: 100%; padding: 14px; font-size: 1.05rem;">
+          📖 ゲームルールを見る
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-close" id="btn-close-settings">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 4. ルール説明モーダル                       -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="rules-modal">
+    <div class="modal-card" style="max-width: 500px;">
+      <h2 class="modal-title">📖 ゲームルール</h2>
+      <div class="modal-body" style="text-align: left; line-height: 1.7; display: flex; flex-direction: column; gap: 12px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 14px; border-left: 4px solid var(--accent-cyan);">
+          <strong style="color: var(--accent-cyan);">🔤 基本ルール</strong><br>
+          直前の単語の最後の文字から始まる<strong>ひらがな単語</strong>を入力します。
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 14px; border-left: 4px solid var(--accent-pink);">
+          <strong style="color: var(--accent-pink);">⚠️ 即敗北の反則ルール</strong>
+          <ul style="padding-left: 18px; margin-top: 4px; margin-bottom: 0;">
+            <li>「<strong>ん</strong>」で終わる単語を入力した場合</li>
+            <li>対戦中に<strong>一度使われた重複単語</strong>を入力した場合</li>
+          </ul>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 14px; border-left: 4px solid var(--accent-purple);">
+          <strong style="color: #c084fc;">⏱️ 持ち時間 ＆ 長語ボーナス</strong>
+          <ul style="padding-left: 18px; margin-top: 4px; margin-bottom: 0;">
+            <li>各自持ち時間は<strong>3分（180秒）</strong>。0秒でタイムアップ敗北！</li>
+            <li><strong>8文字以上</strong>の長文単語を入力すると持ち時間が<strong>+5秒</strong>回復！</li>
+          </ul>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 14px; border-left: 4px solid var(--accent-yellow);">
+          <strong style="color: var(--accent-yellow);">📚 202万語ハイブリッド辞書</strong><br>
+          一般単語に加え、アニメ・有名人・Wikipedia等の固有名詞も判定！
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-close" id="btn-close-rules">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 5. 退出確認モーダル (専用ポップアップ)      -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="exit-modal">
+    <div class="modal-card">
+      <h2 class="modal-title" style="color: var(--accent-pink);">🚪 退出確認</h2>
+      <div class="modal-body" style="text-align: center;">
+        <p style="font-size: 1.1rem; color: #ffffff; margin-bottom: 10px; font-weight: 700;">本当にゲームを退出してタイトル画面に戻りますか？</p>
+        <p style="font-size: 0.85rem; color: #fecdd3; background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); padding: 10px 14px; border-radius: 12px;" id="exit-modal-warning">
+          ※現在の対戦進行状況やスコアはリセットされます。
+        </p>
+      </div>
+      <div class="modal-actions" style="gap: 16px;">
+        <button class="btn-title-primary" id="btn-confirm-exit" style="background: linear-gradient(135deg, var(--accent-pink), #ff4d4d); padding: 12px 28px; font-size: 1.05rem;">
+          退出する 🚪
+        </button>
+        <button class="btn-modal-close" id="btn-cancel-exit">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 6. オンライン対戦ロビーモーダル (ランダムマッチ専用) -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="online-lobby-modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <h2 class="modal-title" style="color: var(--accent-cyan);">🌐 オンライン対戦</h2>
+      <div class="modal-body" style="text-align: left; display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <input type="text" id="online-player-name" class="word-input" style="font-size: 1.1rem; padding: 12px 16px; margin-top: 6px;" placeholder="プレイヤー名を入力 (例: 疾風のしりとり王)" maxlength="16">
+        </div>
+
+        <!-- 🚀 クイックランダムマッチング ボタン -->
+        <button class="btn-title-primary" id="btn-quick-match" style="width: 100%; font-size: 1.25rem; font-weight: 900; padding: 16px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); border: none; box-shadow: var(--glow-cyan); letter-spacing: 2px;">
+          START ⚡
+        </button>
+
+        <!-- ルーム待機状態 -->
+        <div id="room-status-panel" class="hidden" style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 18px; border: 1px solid var(--panel-border);">
+          <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">参加中プレイヤー:</div>
+          <div id="room-players-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          <button class="btn-title-primary" id="btn-start-online-game" style="width: 100%; margin-top: 14px; font-size: 1.05rem; padding: 12px;" disabled>
+            対戦相手を探しています... 🔍
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-close" id="btn-close-online-lobby">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 7. マッチング待機中モーダル                   -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="matchmaking-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <h2 class="modal-title" style="color: var(--accent-cyan);">🔍 対戦相手を検索中...</h2>
+      <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px 0;">
+        <div class="radar-spinner">
+          <div class="radar-pulse"></div>
+          <span style="font-size: 2.2rem;">🌐</span>
+        </div>
+        <p style="font-size: 1.05rem; color: var(--text-main); font-weight: 700;" id="matchmaking-status-text">
+          オンライン対戦相手を探しています (1/2名)
+        </p>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          相手が接続されると自動的に対戦がスタートします
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-modal-close" id="btn-cancel-matchmaking" style="background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.3); color: #fecdd3;">
+          検索をキャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 8. リザルトモーダル                         -->
+  <!-- ========================================== -->
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-card">
+      <h2 class="modal-title" id="result-title">ゲームオーバー</h2>
+      <div class="modal-body" id="result-body">
+        <!-- JSでリザルトと内部ポイント計算結果を反映 -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn-title-primary" id="btn-result-restart" style="padding: 12px 28px; font-size: 1.1rem;">
+          タイトル画面へ戻る 🏠
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/game.js?v=3.0.0"></script>
+</body>
+</html>
